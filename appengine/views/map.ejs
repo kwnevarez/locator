@@ -101,17 +101,14 @@ html,body {
             websocket.onopen = function() {
                 console.log('Connected');
             };
-
             websocket.onclose = function() {
                 console.log('Closed');
             };
-
             websocket.onmessage = function(e) {
                 console.log(e.data);
                 var data = JSON.parse(e.data);
                 update_map(data.id, data.pos, data.acc, data.pub);
             };
-
             websocket.onerror = function(e) {
                 console.log('Error: ', e);
             };
@@ -122,7 +119,7 @@ html,body {
             initialize_map();
             initialize_websockets();
         }
-        </script><script async="" defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-x28fy_HdNt3dpkH6nqHQDOgzqBNEBUA&amp;callback=initialize" type="text/javascript">
+        </script><script async="" defer src="https://maps.googleapis.com/maps/api/js?key=<%= map_api_key %>&amp;callback=initialize" type="text/javascript">
 </script>
     </body>
 </html>

@@ -3,6 +3,12 @@ This example demonstrates how to visuallize your Photon locator results using No
 
 ## Run Locally
 
+### Setup
+
+You will need to supply a Google Maps Javascript API key in order for the example to work properly. Set the key in `app.js` using the `map_api_key` variable. 
+
+### Launch
+
 1. Install the [Google Cloud SDK](https://cloud.google.com/sdk/), including the [gcloud tool](https://cloud.google.com/sdk/gcloud/), and [gcloud app component](https://cloud.google.com/sdk/gcloud-app).
 1. Setup the gcloud tool. This provides authentication to Google Cloud APIs and services.
 
@@ -29,9 +35,24 @@ This example demonstrates how to visuallize your Photon locator results using No
 
 1. Visit the application at [http://localhost:8080](http://localhost:8080).
 
-## Deploying
+## Run in the Cloud
+__Note:__ Secure WebSockets are currently not supported by App Engine Flexible Environment. WebSockets will only work if you load your page over HTTP (not HTTPS).
+
+To use Secure WebSockets now, you can launch a VM on Google Compute Engine using a custom image where you have added SSL support for WebSockets.
+
+### Setup
+
+Before you can run or deploy the sample, you will need to create a new firewall rule to allow traffic on port 65080. This port will be used for websocket connections. You can do this with the [Google Cloud SDK](https://cloud.google.com/sdk) with the following command:
+
+    gcloud compute firewall-rules create default-allow-websockets \
+      --allow tcp:65080 \
+      --target-tags websocket \
+      --description "Allow websocket traffic on port 50051"
+      
+### Deploy
 
 1. Use the [Google Developers Console](https://console.developer.google.com) to create a project/app id. (App id and project id are identical.)
+
 1. Setup the gcloud tool, if you haven't already.
 
         gcloud init
@@ -40,4 +61,5 @@ This example demonstrates how to visuallize your Photon locator results using No
 
         gcloud app deploy
 
-1. Awesome! Your application is now live at `https://YOUR_PROJECT_ID.appspot.com`.
+1. Awesome! Your application is now live at `http://YOUR_PROJECT_ID.appspot.com`.
+

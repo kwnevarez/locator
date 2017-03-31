@@ -35,6 +35,8 @@ var websocket;
 const ws_port = '50051'; // https://cloud.google.com/shell/docs/limitations#outgoing_connections
 const ws_route = '/ws';
 
+const map_api_key = 'AIzaSyA-x28fy_HdNt3dpkH6nqHQDOgzqBNEBUA';
+
 // In order to use websockets on App Engine, you need to connect directly to
 // application instance using the instance's public external IP. This IP can
 // be obtained from the metadata server.
@@ -91,12 +93,12 @@ app.get('/login', (req, res) => {
 
 // logs into particle then set up the event listener
 app.post('/login', urlencodedParser, function(req, res) {
-    console.log('logging in ...');
+    console.log('Logging in');
     particle.login({
         username: req.body.username,
         password: req.body.password
     }).then(function(data) {
-            console.log('logged in. Getting event stream ...');
+            console.log('logged in. Getting event stream');
             token = data.body.access_token;
             //Get your devices events
             particle.getEventStream({
@@ -130,13 +132,14 @@ app.post('/login', urlencodedParser, function(req, res) {
                             console.log(msg);
                         }
                     });
-                    res.redirect('/map');
                 },
                 function(err) {
                     console.log('Could not get stream.');
                     res.send('Get stream failed, please try again.' + err.shortErrorDescription);
                 }
             );
+            // setup the redirect to the map page
+            res.redirect('/map');
         },
         function(err) {
             console.log('Could not log in. ' + err.shortErrorDescription);
@@ -151,24 +154,13 @@ app.use('/map', function(req, res, next) {
     console.log('Logged in?', req.originalUrl);
     // if we have not logged in, redirect to the login page
     if (token === null) {
-        console.log('Nope');
-        res.redirect('/');
+        console.log('Nope, redirect to login');
+        res.redirect('/login');
     } else {
-        console.log('Yep');
+        console.log('Yep, proceed');
         next();
     }  
 });
-
-// websockets does not work over https, so redirect to http
-app.use('/map', function(req, res, next) {
-    console.log('Logged in?', req.originalUrl);
-    if (req.secure) {
-        console.log('Redirecting to http map.')
-        res.redirect('http://' + req.hostname + req.url);
-    } else {
-        next();
-    }
-})
 
 // render the map page with relevent ip and websocket information
 app.get('/map', (req, res) => {    
@@ -178,7 +170,8 @@ app.get('/map', (req, res) => {
         res.render("map.ejs", {
             external_ip: external_ip,
             ws_port: ws_port,
-            ws_route: ws_route
+            ws_route: ws_route,
+            map_api_key: map_api_key
         });
 
     });
