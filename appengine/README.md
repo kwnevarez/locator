@@ -61,5 +61,5 @@ Before you can run or deploy the sample, you will need to create a new firewall 
 
         gcloud app deploy
 
-1. Awesome! Your application is now live at `http://YOUR_PROJECT_ID.appspot.com`.
+1. Awesome! Your application is now live at `http://YOUR_PROJECT_ID.appspot.com`.  <-- Do not use HTTPS, as noted above, websockets will not work.
 
