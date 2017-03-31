@@ -21,6 +21,7 @@ const request = require('request');
 const express = require('express');
 const app = express();
 const expressWs = require('express-ws')(app);
+const session = require('express-session');
 
 const bodyParser = require('body-parser');
 const urlencodedParser = bodyParser.urlencoded({
@@ -29,13 +30,12 @@ const urlencodedParser = bodyParser.urlencoded({
 
 const Particle = require('particle-api-js');
 const particle = new Particle();
-var token = null;
 
 var websocket;
 const ws_port = '50051'; // https://cloud.google.com/shell/docs/limitations#outgoing_connections
 const ws_route = '/ws';
 
-const map_api_key = 'AIzaSyA-x28fy_HdNt3dpkH6nqHQDOgzqBNEBUA';
+const map_api_key = 'YOUR_API_KEY';
 
 // In order to use websockets on App Engine, you need to connect directly to
 // application instance using the instance's public external IP. This IP can
@@ -60,6 +60,28 @@ function get_external_ip(cb) {
         cb(body);
     });
 }
+
+// session middleware
+// Warning The default server-side session storage, MemoryStore, is purposely not 
+// designed for a production environment. It will leak memory under most conditions, 
+// does not scale past a single process, and is meant for debugging and developing.
+// for a list of compatible, production read stores, see: 
+// https://github.com/expressjs/session#compatible-session-stores
+// or https://cloud.google.com/appengine/docs/flexible/nodejs/using-redislabs-memcache
+app.use(session({
+    resave: false, // don't save session if unmodified
+    saveUninitialized: false, // don't create session until something stored
+    secret: 'shhhh, very very secret',
+}));
+
+// session persisted message middleware
+app.use(function(req, res, next) {
+    var msg = req.session.message;
+    delete req.session.message;
+    res.locals.message = '';
+    if (msg) res.locals.message = '<p class="msg">' + msg + '</p>';
+    next();
+});
 
 // our websocket setup
 app.ws(ws_route, (ws) => {
@@ -99,11 +121,11 @@ app.post('/login', urlencodedParser, function(req, res) {
         password: req.body.password
     }).then(function(data) {
             console.log('logged in. Getting event stream');
-            token = data.body.access_token;
+            req.session.token = data.body.access_token;
             //Get your devices events
             particle.getEventStream({
                 deviceId: 'mine',
-                auth: token
+                auth: req.session.token
             }).then(function(stream) {
                     console.log('Got event stream.');
                     stream.on('event', function(data) {
@@ -132,38 +154,41 @@ app.post('/login', urlencodedParser, function(req, res) {
                             console.log(msg);
                         }
                     });
+                    res.redirect('/map');
                 },
                 function(err) {
-                    console.log('Could not get stream.');
-                    res.send('Get stream failed, please try again.' + err.shortErrorDescription);
+                    req.session.message = 'Get stream failed, please try again.' + err.shortErrorDescription;
+                    res.redirect('/logout');
                 }
             );
-            // setup the redirect to the map page
-            res.redirect('/map');
         },
         function(err) {
-            console.log('Could not log in. ' + err.shortErrorDescription);
-            res.send('Login failed, please try again. ' + err.shortErrorDescription);
+            req.session.message = 'Login failed, please try again. ' + err.shortErrorDescription;
+            res.redirect('/login');
         }
     );
-
 })
 
-// you have to be logged in to get the map page
-app.use('/map', function(req, res, next) {
-    console.log('Logged in?', req.originalUrl);
-    // if we have not logged in, redirect to the login page
-    if (token === null) {
-        console.log('Nope, redirect to login');
-        res.redirect('/login');
-    } else {
-        console.log('Yep, proceed');
-        next();
-    }  
+app.get('/logout', function(req, res) {
+    // destroy the user's session to log them out
+    // will be re-created next request
+    req.session.destroy(function() {
+        res.redirect('/');
+    });
 });
 
+// you have to be logged in to get the map page
+function restrict(req, res, next) {
+    if (req.session.token) {
+        next();
+    } else {
+        req.session.message = 'Access denied! Login required.';
+        res.redirect('/login');
+    }
+}
+
 // render the map page with relevent ip and websocket information
-app.get('/map', (req, res) => {    
+app.get('/map', restrict, (req, res) => {
     // render the map page
     get_external_ip((external_ip) => {
         console.log('External IP: ' + external_ip);
