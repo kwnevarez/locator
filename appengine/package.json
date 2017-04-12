@@ -1,6 +1,6 @@
 {
     "name": "Locator",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "Sample implementation of a server that listens for Particle Cloud Geolocation events.",
     "repository": "https://github.com/rickkas7/locator",
     "private": true,

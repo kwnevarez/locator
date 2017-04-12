@@ -1,5 +1,5 @@
 # Introduction
-This example demonstrates how to visuallize your Photon locator results using Node.js in a Google App Engine Flexible Environment and the Google Maps Javascript API. This sample also uses the Express web framework, Websockets, and the Particle Javascript API. 
+This example demonstrates how to visualize your Particle Photon, P1, and Electron locator results using Node.js in a Google App Engine Flexible Environment and the Google Maps Javascript API. This sample also uses the Express web framework, Websockets, and the Particle Javascript API. 
 
 ## Run Locally
 

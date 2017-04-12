@@ -10,20 +10,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# [START runtime]
+
 runtime: nodejs
 env: flex
 
-# [START network]
+# to keep things simple for the session variable backend
+manual_scaling:
+  instances: 1
+
 # This ensures clients will be able to connect via websockets to any instance of
 # this app using websockets
 network:
   forwarded_ports:
   - 50051
   instance_tag: websocket
-# [END network]
-# [END runtime]
 
 # Temporary setting to keep gcloud from uploading node_modules
 skip_files:

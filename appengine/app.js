@@ -35,7 +35,9 @@ var websocket;
 const ws_port = '50051'; // https://cloud.google.com/shell/docs/limitations#outgoing_connections
 const ws_route = '/ws';
 
-const map_api_key = 'YOUR_API_KEY';
+const config_filename = './config.json'
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync(config_filename, 'utf8'));
 
 // In order to use websockets on App Engine, you need to connect directly to
 // application instance using the instance's public external IP. This IP can
@@ -132,7 +134,7 @@ app.post('/login', urlencodedParser, function(req, res) {
                         console.log('Event: ' + JSON.stringify(data));
                         // this is the event handler for particle events
                         // make sure we are only looking at the deviceLocator events
-                        if (data.name.startsWith("hook-response/deviceLocator")) {
+                        if (data.name.startsWith('hook-response/'+ config.event_name)) {
                             var a = data.data.split(",");
                             // convert strings to numbers: lat, lng, accuracy
                             a[0] = parseFloat(a[0]);
@@ -196,7 +198,7 @@ app.get('/map', restrict, (req, res) => {
             external_ip: external_ip,
             ws_port: ws_port,
             ws_route: ws_route,
-            map_api_key: map_api_key
+            map_api_key: config.map_api_key
         });
 
     });
